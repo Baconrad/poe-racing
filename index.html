@@ -109,7 +109,7 @@
             let offset = (current - 1) * pageSize;
             let limit = pageSize;
             let apiLink =
-              `http://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
+              `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
             let apiData = await fetch(apiLink)
               .then(function (response) {
                 return response.json();
