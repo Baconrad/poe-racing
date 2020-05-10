@@ -8,11 +8,14 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-37862762-3"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
     gtag('js', new Date());
     gtag('config', 'UA-37862762-3');
   </script>
-  <script type="text/javascript" src="https://vuejs.org/js/vue.min.js"></script>
+  <script type="text/javascript" src="https://vuejs.org/js/vue.js"></script>
   <script type="text/javascript" src="https://unpkg.com/view-design/dist/iview.min.js"></script>
   <style>
     .badge-color {
@@ -24,7 +27,7 @@
 <body>
   <div id="app">
     <div class="layout">
-      <i-layout>
+      <Layout>
         <i-header>
           <i-menu mode="horizontal" theme="dark" active-name="1">
             <div class="layout-logo" style="color: #fff; text-align: center; font-size: 30px;">
@@ -44,138 +47,139 @@
           </div>
         </i-content>
         <i-footer class="layout-footer-center">source: https://poe.game.qq.com/api/ladders</i-footer>
-      </i-layout>
+      </Layout>
     </div>
-    <script>
-      new Vue({
-        el: '#app',
-        data() {
-          this.loadTableData(1);
-          return {
-            total: 0,
-            loading: true,
-            tableData1: [],
-            tableColumns1: [{
-                title: 'Online',
-                key: 'online',
-                render: (h, params) => {
-                  const row = params.row;
-                  const color = row.online ? 'success' : 'error';
-                  return h('Tag', {
-                    props: {
-                      type: 'dot',
-                      color: color
-                    }
-                  });
-                }
-              },
-              {
-                title: 'Rank',
-                key: 'rank',
-                align: 'center'
-              },
-              {
-                title: 'Level',
-                key: 'level',
-                align: 'center'
-              },
-              {
-                title: 'Challenges',
-                key: 'challenges',
-                align: 'right',
-                render: (h, params) => {
-                  const row = params.row;
+  </div>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        this.loadTableData(1);
+        return {
+          total: 0,
+          loading: true,
+          tableData1: [],
+          tableColumns1: [{
+              title: 'Online',
+              key: 'online',
+              render: (h, params) => {
+                const row = params.row;
+                const color = row.online ? 'success' : 'error';
+                return h('Tag', {
+                  props: {
+                    type: 'dot',
+                    color: color
+                  }
+                });
+              }
+            },
+            {
+              title: 'Rank',
+              key: 'rank',
+              align: 'center'
+            },
+            {
+              title: 'Level',
+              key: 'level',
+              align: 'center'
+            },
+            {
+              title: 'Challenges',
+              key: 'challenges',
+              align: 'right',
+              render: (h, params) => {
+                const row = params.row;
+                return h('Badge', {
+                  props: {
+                    count: row.challenges,
+                    className: 'badge-color'
+                  }
+                });
+              }
+            },
+            {
+              title: 'Account',
+              key: 'account',
+              render: (h, params) => {
+                const row = params.row;
+                return h('a', {
+                  attrs: {
+                    href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
+                    target: '_blank'
+                  }
+                }, row.account);
+              }
+            },
+            {
+              title: 'Character',
+              key: 'character'
+            },
+            {
+              title: 'Class',
+              key: 'class'
+            },
+            {
+              title: 'Experience',
+              key: 'experience'
+            },
+            {
+              title: 'Dead',
+              key: 'dead',
+              align: 'center',
+              render: (h, params) => {
+                const row = params.row;
+                if (row.dead) {
                   return h('Badge', {
                     props: {
-                      count: row.challenges,
-                      className: 'badge-color'
+                      status: 'error'
                     }
                   });
-                }
-              },
-              {
-                title: 'Account',
-                key: 'account',
-                render: (h, params) => {
-                  const row = params.row;
-                  return h('a', {
-                    props: {
-                      href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
-                      target: '_blank'
-                    }
-                  }, row.account);
-                }
-              },
-              {
-                title: 'Character',
-                key: 'character'
-              },
-              {
-                title: 'Class',
-                key: 'class'
-              },
-              {
-                title: 'Experience',
-                key: 'experience'
-              },
-              {
-                title: 'Dead',
-                key: 'dead',
-                align: 'center',
-                render: (h, params) => {
-                  const row = params.row;
-                  if (row.dead) {
-                    return h('Badge', {
-                      props: {
-                        status: 'error'
-                      }
-                    });
-                  } else {
-                    return h('div');
-                  }
+                } else {
+                  return h('div');
                 }
               }
-            ]
-          }
-        },
-        methods: {
-          async loadTableData(current) {
-            console.log('loadTableData')
-            this.loading = true;
-            const pageSize = 20;
-            let offset = (current - 1) * pageSize;
-            let limit = pageSize;
-            let apiLink =
-              `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
-            let apiData = await fetch(apiLink)
-              .then(function (response) {
-                return response.json();
-              })
-            this.loading = false;
-            let data = [];
-            apiData.entries.forEach(entrie => {
-              data.push({
-                online: entrie.online,
-                rank: entrie.rank,
-                dead: entrie.dead,
-                challenges: entrie.account.challenges.total,
-                account: entrie.account.name,
-                character: entrie.character.name,
-                class: entrie.character.class,
-                level: entrie.character.level,
-                experience: entrie.character.experience,
-              })
-            });
-            this.total = apiData.total / pageSize
-            this.tableData1 = data
-          },
-          changePage(current) {
-            this.loadTableData(current);
-          }
+            }
+          ]
         }
-      })
-    </script>
-    
+      },
+      methods: {
+        async loadTableData(current) {
+          console.log('loadTableData')
+          this.loading = true;
+          const pageSize = 20;
+          let offset = (current - 1) * pageSize;
+          let limit = pageSize;
+          let apiLink =
+            `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
+          let apiData = await fetch(apiLink)
+            .then(function (response) {
+              return response.json();
+            })
+          this.loading = false;
+          let data = [];
+          apiData.entries.forEach(entrie => {
+            data.push({
+              online: entrie.online,
+              rank: entrie.rank,
+              dead: entrie.dead,
+              challenges: entrie.account.challenges.total,
+              account: entrie.account.name,
+              character: entrie.character.name,
+              class: entrie.character.class,
+              level: entrie.character.level,
+              experience: entrie.character.experience,
+            })
+          });
+          this.total = apiData.total / pageSize
+          this.tableData1 = data
+        },
+        changePage(current) {
+          this.loadTableData(current);
+        }
+      }
+    })
+  </script>
+
 </body>
 
 </html>
