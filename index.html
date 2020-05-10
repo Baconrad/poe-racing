@@ -95,7 +95,16 @@
               },
               {
                 title: 'Account',
-                key: 'account'
+                key: 'account',
+                render: (h, params) => {
+                  const row = params.row;
+                  return h('a', {
+                    props: {
+                      href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
+                      target: '_blank'
+                    }
+                  }, row.account);
+                }
               },
               {
                 title: 'Character',
