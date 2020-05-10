@@ -14,6 +14,11 @@
   </script>
   <script type="text/javascript" src="https://vuejs.org/js/vue.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/view-design/dist/iview.min.js"></script>
+  <style>
+    .badge-color {
+      background: #777 !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -38,7 +43,7 @@
             </div>
           </div>
         </i-content>
-        <i-footer class="layout-footer-center">2020.05.10 source: https://poe.game.qq.com/api/ladders</i-footer>
+        <i-footer class="layout-footer-center">source: https://poe.game.qq.com/api/ladders</i-footer>
       </i-layout>
     </div>
     <script>
@@ -66,23 +71,26 @@
               },
               {
                 title: 'Rank',
-                key: 'rank'
+                key: 'rank',
+                align: 'center'
               },
               {
-                title: 'Dead',
-                key: 'dead',
+                title: 'Level',
+                key: 'level',
+                align: 'center'
+              },
+              {
+                title: 'Challenges',
+                key: 'challenges',
+                align: 'right',
                 render: (h, params) => {
                   const row = params.row;
-                  if (row.dead) {
-                    return h('Tag', {
-                      props: {
-                        type: 'dot',
-                        color: 'error'
-                      }
-                    }, 'Dead');
-                  } else {
-                    return h('div');
-                  }
+                  return h('Badge', {
+                    props: {
+                      count: row.challenges,
+                      className: 'badge-color'
+                    }
+                  });
                 }
               },
               {
@@ -98,12 +106,25 @@
                 key: 'class'
               },
               {
-                title: 'Level',
-                key: 'level'
-              },
-              {
                 title: 'Experience',
                 key: 'experience'
+              },
+              {
+                title: 'Dead',
+                key: 'dead',
+                align: 'center',
+                render: (h, params) => {
+                  const row = params.row;
+                  if (row.dead) {
+                    return h('Badge', {
+                      props: {
+                        status: 'error'
+                      }
+                    });
+                  } else {
+                    return h('div');
+                  }
+                }
               }
             ]
           }
@@ -128,6 +149,7 @@
                 online: entrie.online,
                 rank: entrie.rank,
                 dead: entrie.dead,
+                challenges: entrie.account.challenges.total,
                 account: entrie.account.name,
                 character: entrie.character.name,
                 class: entrie.character.class,
