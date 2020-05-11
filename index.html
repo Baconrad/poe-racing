@@ -189,6 +189,200 @@
           const pageSize = 20;
           let offset = (current - 1) * pageSize;
           let limit = pageSize;
+          let apiLink = `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
+          let apiData = await fetch(apiLink)
+            .then(response => response.json())
+            .catch(error => {
+              this.$Message.error({
+                background: true,
+                content: error.message,
+                duration: 5
+              });
+              return 'error'
+            })
+          this.loading = false;
+          if (apiData === 'error') return;
+          let data = [];
+          apiData.entries.forEach(entrie => {
+            data.push({
+              online: entrie.online,
+              rank: entrie.rank,
+              dead: entrie.dead,
+              challenges: entrie.account.challenges.total,
+              account: entrie.account.name,
+              character: entrie.character.name,
+              class: entrie.character.class,
+              level: entrie.character.level,
+              experience: entrie.character.experience,
+            })
+          });
+          this.total = apiData.total / pageSize
+          this.tableData1 = data
+        },
+        changePage(current) {
+          this.loadTableData(current);
+        }
+      }
+    })
+  </script>
+
+</body>
+
+</html>;
+    }
+    .badge-color {
+      background: #777 !important;
+      z-index: auto;
+    }
+    .layout-footer-center {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="layout">
+      <Layout>
+        <i-header>
+          <i-menu mode="horizontal" theme="dark" active-name="1">
+            <div class="layout-logo">
+              Path of Exile Racing
+            </div>
+          </i-menu>
+        </i-header>
+        <i-content>
+          <div class="content">
+            <div class="navbar">
+              <div class="navbar-left">
+                <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
+              </div>
+              <div class="navbar-right">
+                <Page :total="total" :current="1" @on-change="changePage"></Page>
+              </div>
+            </div>
+            <i-table :data="tableData1" :columns="tableColumns1" :loading="loading" no-data-text="no data" height="auto"
+              stripe></i-table>
+            <div class="navbar">
+              <div class="navbar-left">
+                <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
+              </div>
+              <div class="navbar-right">
+                <Page :total="total" :current="1" @on-change="changePage"></Page>
+              </div>
+            </div>
+          </div>
+        </i-content>
+        <i-footer class="layout-footer-center">
+          <iframe src="https://ghbtns.com/github-btn.html?user=Baconrad&repo=poe-racing&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="Star twbs/bootstrap on GitHub"></iframe>
+          source: https://poe.game.qq.com/api/ladders
+        </i-footer>
+      </Layout>
+    </div>
+  </div>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        this.loadTableData(1);
+        return {
+          currentPage: 1,
+          total: 0,
+          loading: true,
+          tableData1: [],
+          tableColumns1: [{
+              title: 'Online',
+              key: 'online',
+              render: (h, params) => {
+                const row = params.row;
+                const color = row.online ? 'success' : 'error';
+                return h('Tag', {
+                  props: {
+                    type: 'dot',
+                    color: color
+                  }
+                });
+              }
+            },
+            {
+              title: 'Rank',
+              key: 'rank',
+              align: 'center'
+            },
+            {
+              title: 'Level',
+              key: 'level',
+              align: 'center'
+            },
+            {
+              title: 'Challenges',
+              key: 'challenges',
+              align: 'right',
+              render: (h, params) => {
+                const row = params.row;
+                return h('Badge', {
+                  props: {
+                    count: row.challenges,
+                    className: 'badge-color'
+                  }
+                });
+              }
+            },
+            {
+              title: 'Account',
+              key: 'account',
+              render: (h, params) => {
+                const row = params.row;
+                return h('a', {
+                  attrs: {
+                    href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
+                    target: '_blank'
+                  }
+                }, row.account);
+              }
+            },
+            {
+              title: 'Character',
+              key: 'character'
+            },
+            {
+              title: 'Class',
+              key: 'class'
+            },
+            {
+              title: 'Experience',
+              key: 'experience'
+            },
+            {
+              title: 'Dead',
+              key: 'dead',
+              align: 'center',
+              render: (h, params) => {
+                const row = params.row;
+                if (row.dead) {
+                  return h('Badge', {
+                    props: {
+                      status: 'error'
+                    }
+                  });
+                } else {
+                  return h('div');
+                }
+              }
+            }
+          ]
+        }
+      },
+      methods: {
+        async loadTableData(current) {
+          this.loading = true;
+          if (isNaN(current)){
+            current = this.currentPage;
+          }
+          this.currentPage = current;
+          const pageSize = 20;
+          let offset = (current - 1) * pageSize;
+          let limit = pageSize;
           let apiLink =
             `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
           let apiData = await fetch(apiLink)
