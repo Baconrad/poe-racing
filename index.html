@@ -64,7 +64,7 @@
                 <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
               </div>
               <div class="navbar-right">
-                <Page :total="total" :current="1" @on-change="changePage"></Page>
+                <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
               </div>
             </div>
             <i-table :data="tableData1" :columns="tableColumns1" :loading="loading" no-data-text="no data" height="auto"
@@ -74,7 +74,7 @@
                 <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
               </div>
               <div class="navbar-right">
-                <Page :total="total" :current="1" @on-change="changePage"></Page>
+                <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
               </div>
             </div>
           </div>
