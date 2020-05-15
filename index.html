@@ -8,7 +8,6 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-37862762-3"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-
     function gtag() {
       dataLayer.push(arguments);
     }
@@ -19,27 +18,33 @@
   <script type="text/javascript" src="https://unpkg.com/view-design/dist/iview.min.js"></script>
   <style>
     .layout-logo {
-      color: #fff; 
-      text-align: center; 
+      color: #fff;
+      text-align: center;
       font-size: 30px;
     }
+
     .navbar {
-      margin: 10px; 
+      margin: 10px;
       overflow: hidden
     }
+
     .navbar-left {
       float: left;
     }
+
     .navbar-right {
       float: right;
     }
+
     .content {
       min-height: 200px;
     }
+
     .badge-color {
       background: #777 !important;
       z-index: auto;
     }
+
     .layout-footer-center {
       text-align: center;
     }
@@ -59,28 +64,45 @@
         </i-header>
         <i-content>
           <div class="content">
-            <div class="navbar">
-              <div class="navbar-left">
-                <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
-              </div>
-              <div class="navbar-right">
-                <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
-              </div>
-            </div>
-            <i-table :data="tableData1" :columns="tableColumns1" :loading="loading" no-data-text="no data" height="auto"
-              stripe></i-table>
-            <div class="navbar">
-              <div class="navbar-left">
-                <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTableData">Refresh</i-button>
-              </div>
-              <div class="navbar-right">
-                <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
-              </div>
-            </div>
+            <Tabs :animated="false" @on-click="handleTabChange">
+              <tab-pane label="Ladder" name="ladder" :disabled="loading">
+                <div class="navbar">
+                  <div class="navbar-left">
+                    <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadLadderData">Refresh
+                    </i-button>
+                  </div>
+                  <div class="navbar-right">
+                    <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
+                  </div>
+                </div>
+                <i-table :data="laddersData" :columns="laddersColumns" :loading="loading" no-data-text="no data"
+                  height="auto" stripe></i-table>
+                <div class="navbar">
+                  <div class="navbar-left">
+                    <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadLadderData">Refresh
+                    </i-button>
+                  </div>
+                  <div class="navbar-right">
+                    <Page :total="total" :current="currentPage" @on-change="changePage"></Page>
+                  </div>
+                </div>
+              </tab-pane>
+              <tab-pane label="Top ~100 (filter out all dead characters)" name="top" :disabled="loading">
+                <div class="navbar">
+                  <div class="navbar-left">
+                    <i-button type="primary" icon="md-refresh" :loading="loading" @click="loadTopData">Refresh
+                    </i-button>
+                  </div>
+                </div>
+                <i-table :data="topData" :columns="topColumns" :loading="loading" no-data-text="no data" height="auto"
+                  stripe></i-table>
+              </tab-pane>
+            </Tabs>
           </div>
         </i-content>
         <i-footer class="layout-footer-center">
-          <iframe src="https://ghbtns.com/github-btn.html?user=Baconrad&repo=poe-racing&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="Star twbs/bootstrap on GitHub"></iframe>
+          <iframe src="https://ghbtns.com/github-btn.html?user=Baconrad&repo=poe-racing&type=star&count=true"
+            frameborder="0" scrolling="0" width="150" height="20" title="Star twbs/bootstrap on GitHub"></iframe>
           source: https://poe.game.qq.com/api/ladders
         </i-footer>
       </Layout>
@@ -90,106 +112,97 @@
     new Vue({
       el: '#app',
       data() {
-        this.loadTableData(1);
+        this.loadLadderData(1);
+        let laddersColumns = [{
+          title: 'Online',
+          key: 'online',
+          render: (h, params) => {
+            const row = params.row;
+            const color = row.online ? 'success' : 'error';
+            return h('Tag', {
+              props: {
+                type: 'dot',
+                color: color
+              }
+            });
+          }
+        }, {
+          title: 'Rank',
+          key: 'rank',
+          align: 'center'
+        }, {
+          title: 'Level',
+          key: 'level',
+          align: 'center'
+        }, {
+          title: 'Challenges',
+          key: 'challenges',
+          align: 'right',
+          render: (h, params) => {
+            const row = params.row;
+            return h('Badge', {
+              props: {
+                count: row.challenges,
+                className: 'badge-color'
+              }
+            });
+          }
+        }, {
+          title: 'Account',
+          key: 'account',
+          render: (h, params) => {
+            const row = params.row;
+            return h('a', {
+              attrs: {
+                href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
+                target: '_blank'
+              }
+            }, row.account);
+          }
+        }, {
+          title: 'Character',
+          key: 'character'
+        }, {
+          title: 'Class',
+          key: 'class'
+        }, {
+          title: 'Experience',
+          key: 'experience'
+        }, {
+          title: 'Dead',
+          key: 'dead',
+          align: 'center',
+          render: (h, params) => {
+            const row = params.row;
+            if (row.dead) {
+              return h('Badge', {
+                props: {
+                  status: 'error'
+                }
+              });
+            } else {
+              return h('div');
+            }
+          }
+        }];
+        let topColumns = laddersColumns.slice(0, laddersColumns.length - 1);
         return {
           currentPage: 1,
           total: 0,
           loading: true,
-          tableData1: [],
-          tableColumns1: [{
-              title: 'Online',
-              key: 'online',
-              render: (h, params) => {
-                const row = params.row;
-                const color = row.online ? 'success' : 'error';
-                return h('Tag', {
-                  props: {
-                    type: 'dot',
-                    color: color
-                  }
-                });
-              }
-            },
-            {
-              title: 'Rank',
-              key: 'rank',
-              align: 'center'
-            },
-            {
-              title: 'Level',
-              key: 'level',
-              align: 'center'
-            },
-            {
-              title: 'Challenges',
-              key: 'challenges',
-              align: 'right',
-              render: (h, params) => {
-                const row = params.row;
-                return h('Badge', {
-                  props: {
-                    count: row.challenges,
-                    className: 'badge-color'
-                  }
-                });
-              }
-            },
-            {
-              title: 'Account',
-              key: 'account',
-              render: (h, params) => {
-                const row = params.row;
-                return h('a', {
-                  attrs: {
-                    href: `http://poe.game.qq.com/account/view-profile/${row.account}/characters`,
-                    target: '_blank'
-                  }
-                }, row.account);
-              }
-            },
-            {
-              title: 'Character',
-              key: 'character'
-            },
-            {
-              title: 'Class',
-              key: 'class'
-            },
-            {
-              title: 'Experience',
-              key: 'experience'
-            },
-            {
-              title: 'Dead',
-              key: 'dead',
-              align: 'center',
-              render: (h, params) => {
-                const row = params.row;
-                if (row.dead) {
-                  return h('Badge', {
-                    props: {
-                      status: 'error'
-                    }
-                  });
-                } else {
-                  return h('div');
-                }
-              }
-            }
-          ]
+          topData: [],
+          laddersData: [],
+          laddersColumns,
+          topColumns
         }
       },
       methods: {
-        async loadTableData(current) {
+        async fetchAPI(offset, limit) {
           this.loading = true;
-          if (isNaN(current)){
-            current = this.currentPage;
-          }
-          this.currentPage = current;
-          const pageSize = 20;
-          let offset = (current - 1) * pageSize;
-          let limit = pageSize;
-          let apiLink = `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)&type=league&realm=pc`;
+          const ladderId =
+            'SCSPVP%E8%BF%B7%E9%9B%BE%E7%8B%BC%E4%BA%BA%E6%9C%8D%E9%82%80%E8%AF%B7%E8%B5%9B+(PL2584)';
+          let apiLink =
+            `https://poe.game.qq.com/api/ladders?offset=${offset}&limit=${limit}&id=${ladderId}&type=league&realm=pc`;
           let apiData = await fetch(apiLink)
             .then(response => response.json())
             .catch(error => {
@@ -199,12 +212,11 @@
                 duration: 5
               });
               return 'error'
-            })
-          this.loading = false;
-          if (apiData === 'error') return;
-          let data = [];
+            });
+          if (apiData === 'error') return apiData;
+          let formatData = [];
           apiData.entries.forEach(entrie => {
-            data.push({
+            formatData.push({
               online: entrie.online,
               rank: entrie.rank,
               dead: entrie.dead,
@@ -216,11 +228,43 @@
               experience: entrie.character.experience,
             })
           });
+          this.loading = false;
+          return formatData;
+        },
+        async loadLadderData(current, isInit) {
+          if (isNaN(current)) {
+            current = this.currentPage;
+          }
+          if (isInit === false) {
+            ga('send', 'event', 'Data', 'Load', 'Ladder', current);
+          }
+          this.currentPage = current;
+          const pageSize = 20;
+          let offset = (current - 1) * pageSize;
+          let limit = pageSize;
+          let apiData = await this.fetchAPI(offset, limit)
+          if (apiData === 'error') return;
           this.total = apiData.total / pageSize
-          this.tableData1 = data
+          this.laddersData = apiData
+        },
+        async loadTopData() {
+          ga('send', 'event', 'Data', 'Load', 'Top');
+          const offset = 0;
+          const limit = 200;
+          let apiData = await this.fetchAPI(offset, limit)
+          if (apiData === 'error') return;
+          apiData = apiData.filter(rowData => rowData.dead === false).map((rowData, index) => {
+            rowData.rank = index + 1;
+            return rowData;
+          })
+          this.topData = apiData;
         },
         changePage(current) {
-          this.loadTableData(current);
+          this.loadLadderData(current, true);
+        },
+        async handleTabChange(tabName) {
+          if (tabName !== 'top') return;
+          this.loadTopData();
         }
       }
     })
