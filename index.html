@@ -52,11 +52,15 @@
     .ivu-tag-dot-inner {
       margin-right: 0px;
     }
+
+    [v-cloak] {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
-  <div id="app">
+  <div id="app" v-cloak>
     <div class="layout">
       <Layout>
         <i-header>
@@ -68,6 +72,12 @@
         </i-header>
         <i-content>
           <div class="content">
+            <Alert type="error">
+              Why is 植物猫 not in the ranking?
+              <span slot="desc">
+                The final decision from SCSPVP is that 植物貓’ is disqualified from the competition thus ranking is cancelled and will not be recorded in this competition (<a href="http://bbs.17173.com/thread-11257834-1-1.html" target="_blank">source</a>)
+              </span>
+            </Alert>
             <Tabs :animated="false" @on-click="handleTabChange">
               <tab-pane label="Ladder" name="ladder" :disabled="loading">
                 <div class="navbar">
@@ -219,10 +229,12 @@
             });
           if (apiData === 'error') return apiData;
           let formatData = [];
-          apiData.entries.forEach(entrie => {
+          apiData.entries
+            .filter(entrie => entrie.account.name !== "\u690d\u7269\u732b")
+            .forEach(entrie => {
             formatData.push({
               online: entrie.online,
-              rank: entrie.rank,
+              rank: entrie.rank - 1 /* Inaccurate */,
               dead: entrie.dead,
               challenges: entrie.account.challenges.total,
               account: entrie.account.name,
