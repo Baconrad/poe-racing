@@ -334,6 +334,9 @@
           }
         },
         calculateXPH(entry) {
+          if(!entry.online){
+            return "";
+          }
           if (window.localStorage){
             let storedChar = window.localStorage.getItem(entry.character.name);
             
