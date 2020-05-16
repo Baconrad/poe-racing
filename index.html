@@ -82,6 +82,7 @@
                 The final decision from SCSPVP is that 植物貓’ is disqualified from the competition thus ranking is cancelled and will not be recorded in this competition (<a href="http://bbs.17173.com/thread-11257834-1-1.html" target="_blank">source</a>)
               </span>
             </Alert>
+            
             <Tabs :animated="false" @on-click="handleTabChange">
               <tab-pane label="Ladder" name="ladder" :disabled="loading">
                 <div class="navbar">
@@ -121,7 +122,7 @@
         <i-footer class="layout-footer-center">
           <iframe src="https://ghbtns.com/github-btn.html?user=Baconrad&repo=poe-racing&type=star&count=true"
             frameborder="0" scrolling="0" width="150" height="20" title="Star twbs/bootstrap on GitHub"></iframe>
-          source: https://poe.game.qq.com/api/ladders
+          source: https://poe.game.qq.com/api/ladders. Note: EXP per hour is calculated locally. You need to refresh the page every once in while to update.
         </i-footer>
       </Layout>
     </div>
@@ -201,7 +202,7 @@
             });
           }
         }, {
-          title: 'XP/h',
+          title: 'EXP/h (approx.)',
           key: 'xph'
         }, {
           title: 'Dead',
@@ -345,9 +346,10 @@
 
                 for(let i = 1; i < reversedProgress.length; i++){
                   let timeDifference = expNow.time - reversedProgress[i].time;
-                  if (timeDifference <= 3600){
+                  if (timeDifference > 180 && timeDifference <= 3600 ){
                     compareWith = reversedProgress[i];
-                  } else {
+                  } 
+                  if(timeDifference > 3600){
                     break; //older values probably not representative
                   }
                 }
