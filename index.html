@@ -53,6 +53,10 @@
       margin-right: 0px;
     }
 
+    .ivu-progress-inner {
+      background-color: #dedede;
+    }
+
     [v-cloak] {
       display: none;
     }
@@ -78,6 +82,7 @@
                 The final decision from SCSPVP is that 植物貓’ is disqualified from the competition thus ranking is cancelled and will not be recorded in this competition (<a href="http://bbs.17173.com/thread-11257834-1-1.html" target="_blank">source</a>)
               </span>
             </Alert>
+            
             <Tabs :animated="false" @on-click="handleTabChange">
               <tab-pane label="Ladder" name="ladder" :disabled="loading">
                 <div class="navbar">
@@ -117,7 +122,7 @@
         <i-footer class="layout-footer-center">
           <iframe src="https://ghbtns.com/github-btn.html?user=Baconrad&repo=poe-racing&type=star&count=true"
             frameborder="0" scrolling="0" width="150" height="20" title="Star twbs/bootstrap on GitHub"></iframe>
-          source: https://poe.game.qq.com/api/ladders
+          source: https://poe.game.qq.com/api/ladders. Note: EXP per hour is calculated locally. You need to refresh the page every once in while to update.
         </i-footer>
       </Layout>
     </div>
@@ -183,6 +188,23 @@
           title: 'Experience',
           key: 'experience'
         }, {
+          title: 'Progress',
+          key: 'progress',
+          render: (h, params) => {
+            const row = params.row;
+            return h('Progress', {
+              props: {
+                percent: row.progress,
+                "hide-info": true,
+                "stroke-width": 5,
+
+              }
+            });
+          }
+        }, {
+          title: 'EXP/h (approx.)',
+          key: 'xph'
+        }, {
           title: 'Dead',
           key: 'dead',
           align: 'center',
@@ -232,18 +254,22 @@
           apiData.entries
             .filter(entrie => entrie.account.name !== "\u690d\u7269\u732b")
             .forEach(entrie => {
-            formatData.push({
-              online: entrie.online,
-              rank: entrie.rank - 1 /* Inaccurate */,
-              dead: entrie.dead,
-              challenges: entrie.account.challenges.total,
-              account: entrie.account.name,
-              character: entrie.character.name,
-              class: entrie.character.class,
-              level: entrie.character.level,
-              experience: entrie.character.experience,
+              this.storeEntry(entrie);
+              formatData.push({
+                online: entrie.online,
+                rank: entrie.rank - 1 /* Inaccurate */,
+                dead: entrie.dead,
+                challenges: entrie.account.challenges.total,
+                account: entrie.account.name,
+                character: entrie.character.name,
+                class: entrie.character.class,
+                level: entrie.character.level,
+                experience: entrie.character.experience,
+                progress : this.calculateXPPercent(entrie),
+                xph : this.calculateXPH(entrie)
             })
           });
+          
           this.loading = false;
           return formatData;
         },
@@ -281,6 +307,74 @@
         async handleTabChange(tabName) {
           if (tabName !== 'top') return;
           this.loadTopData();
+        },
+        calculateXPPercent(entry) {
+          if(entry.character.level == 100){
+            return 100;
+          }
+          let expTable = [0,525,1760,3781,7184,12186,19324,29377,43181,61693,85990,117506,157384,207736,269997,346462,439268,551295,685171,843709,1030734,1249629,1504995,1800847,2142652,2535122,2984677,3496798,4080655,4742836,5490247,6334393,7283446,8384398,9541110,10874351,12361842,14018289,15859432,17905634,20171471,22679999,25456123,28517857,31897771,35621447,39721017,44225461,49176560,54607467,60565335,67094245,74247659,82075627,90631041,99984974,110197515,121340161,133497202,146749362,161191120,176922628,194049893,212684946,232956711,255001620,278952403,304972236,333233648,363906163,397194041,433312945,472476370,514937180,560961898,610815862,664824416,723298169,786612664,855129128,929261318,1009443795,1096169525,1189918242,1291270350,1400795257,1519130326,1646943474,1784977296,1934009687,2094900291,2268549086,2455921256,2658074992,2876116901,3111280300,3364828162,3638186694,3932818530],
+            expNextLevel = expTable[entry.character.level],
+            expLastLevel = expTable[entry.character.level-1],
+            expProgress  = expNextLevel - expLastLevel;
+          return ((entry.character.experience-expLastLevel) / expProgress) * 100;
+        },
+        storeEntry(entry){
+          if (window.localStorage){
+            let now = Math.round(new Date().getTime()/1000),
+                storedChar = window.localStorage.getItem(entry.character.name),
+                snapshot = {time : now, exp : entry.character.experience };
+            
+            if(storedChar != null){
+              storedChar = JSON.parse(storedChar);
+              storedChar.push(snapshot);
+            } else {
+              storedChar = [snapshot];
+            }
+            window.localStorage.setItem(entry.character.name, JSON.stringify(storedChar));
+          }
+        },
+        calculateXPH(entry) {
+          if(!entry.online){
+            return "";
+          }
+          if (window.localStorage){
+            let storedChar = window.localStorage.getItem(entry.character.name);
+            
+            if(storedChar != null){
+              storedChar = JSON.parse(storedChar);
+              if(storedChar.length > 1){
+                let reversedProgress = storedChar.reverse(),
+                    expNow = reversedProgress[0],
+                    compareWith = false;
+
+                for(let i = 1; i < reversedProgress.length; i++){
+                  let timeDifference = expNow.time - reversedProgress[i].time;
+                  if (timeDifference > 180 && timeDifference <= 3600 ){
+                    compareWith = reversedProgress[i];
+                  } 
+                  if(timeDifference > 3600){
+                    break; //older values probably not representative
+                  }
+                }
+
+                if(compareWith){
+                  let timeDifference = expNow.time - compareWith.time,
+                      expDifference = expNow.exp - compareWith.exp,
+                      xph = (((expDifference / timeDifference) * 3600) / 1000000);
+                  
+                  if(xph == 0){
+                    return "";
+                  }
+
+                  return Math.round(( xph * 10)) / 10 + "M";
+                }
+
+
+              }
+              
+            } 
+          }
+          return "N/A";
         }
       }
     })
