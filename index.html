@@ -195,11 +195,14 @@
               props: {
                 percent: row.progress,
                 "hide-info": true,
-                "stroke-width": 5
+                "stroke-width": 5,
 
               }
             });
           }
+        }, {
+          title: 'XP/h',
+          key: 'xph'
         }, {
           title: 'Dead',
           key: 'dead',
@@ -250,19 +253,22 @@
           apiData.entries
             .filter(entrie => entrie.account.name !== "\u690d\u7269\u732b")
             .forEach(entrie => {
-            formatData.push({
-              online: entrie.online,
-              rank: entrie.rank - 1 /* Inaccurate */,
-              dead: entrie.dead,
-              challenges: entrie.account.challenges.total,
-              account: entrie.account.name,
-              character: entrie.character.name,
-              class: entrie.character.class,
-              level: entrie.character.level,
-              experience: entrie.character.experience,
-              progress : this.calculateXPPercent(entrie)
+              this.storeEntry(entrie);
+              formatData.push({
+                online: entrie.online,
+                rank: entrie.rank - 1 /* Inaccurate */,
+                dead: entrie.dead,
+                challenges: entrie.account.challenges.total,
+                account: entrie.account.name,
+                character: entrie.character.name,
+                class: entrie.character.class,
+                level: entrie.character.level,
+                experience: entrie.character.experience,
+                progress : this.calculateXPPercent(entrie),
+                xph : this.calculateXPH(entrie)
             })
           });
+          
           this.loading = false;
           return formatData;
         },
@@ -310,6 +316,60 @@
             expLastLevel = expTable[entry.character.level-1],
             expProgress  = expNextLevel - expLastLevel;
           return ((entry.character.experience-expLastLevel) / expProgress) * 100;
+        },
+        storeEntry(entry){
+          if (window.localStorage){
+            let now = Math.round(new Date().getTime()/1000),
+                storedChar = window.localStorage.getItem(entry.character.name),
+                snapshot = {time : now, exp : entry.character.experience };
+            
+            if(storedChar != null){
+              storedChar = JSON.parse(storedChar);
+              storedChar.push(snapshot);
+            } else {
+              storedChar = [snapshot];
+            }
+            window.localStorage.setItem(entry.character.name, JSON.stringify(storedChar));
+          }
+        },
+        calculateXPH(entry) {
+          if (window.localStorage){
+            let storedChar = window.localStorage.getItem(entry.character.name);
+            
+            if(storedChar != null){
+              storedChar = JSON.parse(storedChar);
+              if(storedChar.length > 1){
+                let reversedProgress = storedChar.reverse(),
+                    expNow = reversedProgress[0],
+                    compareWith = false;
+
+                for(let i = 1; i < reversedProgress.length; i++){
+                  let timeDifference = expNow.time - reversedProgress[i].time;
+                  if (timeDifference <= 3600){
+                    compareWith = reversedProgress[i];
+                  } else {
+                    break; //older values probably not representative
+                  }
+                }
+
+                if(compareWith){
+                  let timeDifference = expNow.time - compareWith.time,
+                      expDifference = expNow.exp - compareWith.exp,
+                      xph = (((expDifference / timeDifference) * 3600) / 1000000);
+                  
+                  if(xph == 0){
+                    return "";
+                  }
+
+                  return Math.round(( xph * 10)) / 10 + "M";
+                }
+
+
+              }
+              
+            } 
+          }
+          return "N/A";
         }
       }
     })
