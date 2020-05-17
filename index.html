@@ -264,7 +264,7 @@
                 character: entrie.character.name,
                 class: entrie.character.class,
                 level: entrie.character.level,
-                experience: entrie.character.experience,
+                experience: entrie.character.experience.toLocaleString(),
                 progress : this.calculateXPPercent(entrie),
                 xph : this.calculateXPH(entrie)
             })
